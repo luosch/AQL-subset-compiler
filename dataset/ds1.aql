@@ -1,0 +1,37 @@
+create view GameScore as
+    extract regex /[0-9]+-[0-9]+/
+        on D.text as score
+    from Document D;
+
+create view Type as
+    extract regex /points|assists|rebounds|turnovers|blocks/
+        on D.text
+        return group 0 as type
+    from Document D;
+
+create view Number as
+    extract regex /[0-9]+(\.[0-9])?/
+        on D.text
+        return group 0 as number
+    from Document D;
+
+create view Data as 
+    extract pattern (<N.number>) (<T.type>) 
+        return group 0 as data
+           and group 1 as number
+           and group 2 as type
+    from Type T, Number N;
+
+create view PlayerData as 
+    extract pattern (/[A-Z][a-z]+/) (/[A-Z][a-z]+/) (/got/) <Token>{0, 5} (<N.number>) (<T.type>) 
+        return group 1 as firstName
+           and group 2 as secondName
+           and group 4 as number
+           and group 5 as type
+    from Type T, Number N;
+
+output view GameScore;
+output view Type;
+output view Number;
+output view Data;
+output view PlayerData;
